@@ -1,11 +1,14 @@
+using System.Diagnostics;
 using System.Media;
+using System.Runtime.InteropServices;
 using System.Text;
+using UmeboshiLibrary;
 
 namespace JiroJudgeViewer {
     public partial class Form1 : Form {
 
         JiroDead jiroDead;
-        private const string VERSION = "V0.4.4";
+        private const string VERSION = "V0.5";
 
         private const string RESULT_FOLDER = @".\Result";
         private const string HOZONWAVE = @".\Wave\Hozon.wav";
@@ -24,6 +27,18 @@ namespace JiroJudgeViewer {
 
         private int OBAKAcount;
 
+        // 直前の判定
+        private int OldGreatP1 = 0;
+        private int OldGoodP1 = 0;
+        private int OldBadP1 = 0;
+        private int OldGreatP2 = 0;
+        private int OldGoodP2 = 0;
+        private int OldBadP2 = 0;
+
+        // ハードゲージ強制書き換えモード用
+        int wHardGaugeValueP1 = 0;
+        int wHardGaugeValueP2 = 0;
+
         public Form1() {
             InitializeComponent();
         }
@@ -35,7 +50,7 @@ namespace JiroJudgeViewer {
             OBAKAcount = 0;
 
             this.Text = "DP Judge Viewer " + VERSION;
-            if (!Directory.Exists(RESULT_FOLDER)) { 
+            if (!Directory.Exists(RESULT_FOLDER)) {
                 Directory.CreateDirectory(RESULT_FOLDER);
             }
 
@@ -56,6 +71,8 @@ namespace JiroJudgeViewer {
 
             this.MaximumSize = this.Size;
             this.MinimumSize = this.Size;
+
+            cbHardGauge.SelectedIndex = 0;
         }
 
         private void ReadJiroMemory() {
@@ -125,7 +142,7 @@ namespace JiroJudgeViewer {
 
             // ゲージが0になると1になる
             const int HARDGAUGE_STATUS_P1_ADDRESS = 0x0007C750;
-            const int READ_HARDGAUGE_STATUS_P1_SIZE = 1; 
+            const int READ_HARDGAUGE_STATUS_P1_SIZE = 1;
             const int HARDGAUGE_STATUS_P2_ADDRESS = 0x0007C930;
             const int READ_HARDGAUGE_STATUS_P2_SIZE = 1;
 
@@ -288,6 +305,10 @@ namespace JiroJudgeViewer {
             Win32Api.ReadProcessMemory(jiro.Handle, TjaPathPtr, TJAPathArray, READ_TJA_PATH_SIZE, out TJAPathByte);
 
             // 画面推移を見る
+            // 0 : プレイ前
+            // 1 : プレイ中
+            // 2 : リザルト確定
+            // 3 : リザルト画面
             Win32Api.ReadProcessMemory(jiro.Handle, IsPlayingPtr, IsPlayingArray, READ_ISPLAYING_SIZE, out IsPlayingByte);
 
             // ノルマゲージ取得
@@ -321,6 +342,7 @@ namespace JiroJudgeViewer {
 
             //int great = Win32Api.ReadProcessMemory(jiro.Handle, GreatPtr, GreatResultArrayPtr, READ_GREAT_SIZE, out GreatByte);
 
+            // 各判定の値を取得
             int GreatP1 = GreatP1Array[1] * 256 + GreatP1Array[0];
             int GoodP1 = GoodP1Array[1] * 256 + GoodP1Array[0];
             int BadP1 = BadP1Array[1] * 256 + BadP1Array[0];
@@ -342,6 +364,116 @@ namespace JiroJudgeViewer {
             int EXScore = GreatP1 * 2 + GoodP1 + GreatP2 * 2 + GoodP2;
             int MAXMinus = GoodP1 + BadP1 * 2 + GoodP2 + BadP2 * 2;
 
+            // 各判定の値が変化したかどうか
+            bool GreatP1Changed = OldGreatP1 != GreatP1;
+            bool GoodP1Changed = OldGoodP1 != GoodP1;
+            bool BadP1Changed = OldBadP1 != BadP1;
+            bool GreatP2Changed = OldGreatP2 != GreatP2;
+            bool GoodP2Changed = OldGoodP2 != GoodP2;
+            bool BadP2Changed = OldBadP2 != BadP2;
+
+            // ハードゲージの強制書き込み
+            // ハードゲージの初期値と良、可、不可の増減値
+            int HardGaugeInit = 10000;
+            int GreatIncDec = 0;
+            int GoodIncDec = 0;
+            int BadIncDec = 0;
+            switch (cbHardGauge.SelectedIndex) {
+                // 通常ハードゲージ
+                case 0:
+                    break;
+                // 超ハードゲージ
+                case 1:
+                    GreatIncDec = 16;
+                    GoodIncDec = -100;
+                    BadIncDec = -1200;
+                    break;
+                // バカハードゲージ
+                case 2:
+                    GreatIncDec = 16;
+                    GoodIncDec = -250;
+                    BadIncDec = -3600;
+                    break;
+                // 回復なしハードゲージ
+                case 3:
+                    GreatIncDec = 0;
+                    GreatIncDec = 0;
+                    BadIncDec = -900;
+                    break;
+                // フレアゲージ
+                case 4:
+                    GreatIncDec = 0;
+                    GoodIncDec = -300;
+                    BadIncDec = -3334;
+                    break;
+                // 回復なしフレアEXゲージ
+                case 5:
+                    GreatIncDec = 0;
+                    GoodIncDec = -1000;
+                    BadIncDec = -5000;
+                    break;
+                // 可のみゲージ
+                case 6:
+                    GreatIncDec = -400;
+                    GoodIncDec = 50;
+                    BadIncDec = -400;
+                    break;
+                default:
+                    break;
+            }
+
+
+            // ハードゲージ強制書き換えモード
+            if (cbHardGauge.SelectedIndex != 0) {
+
+                // プレイ中じゃなければゲージは初期値に
+                if (IsPlayingArray[0] == 0) {
+                    wHardGaugeValueP1 = HardGaugeInit;
+                    wHardGaugeValueP2 = HardGaugeInit;
+                }
+
+                if (wHardGaugeValueP1 < 0) wHardGaugeValueP1 = 0;
+                if (wHardGaugeValueP1 > 10000) wHardGaugeValueP1 = 10000;
+                if (wHardGaugeValueP2 > 10000) wHardGaugeValueP2 = 10000;
+                if (wHardGaugeValueP2 < 0) wHardGaugeValueP2 = 0;
+
+                // 変化した判定に合わせて各ゲージを変化させる
+                if (GreatP1Changed) {
+                    wHardGaugeValueP1 += GreatIncDec;
+                }
+                if (GoodP1Changed) {
+                    wHardGaugeValueP1 += GoodIncDec;
+                }
+                if (BadP1Changed) {
+                    wHardGaugeValueP1 += BadIncDec;
+                }
+                if (GreatP2Changed) {
+                    wHardGaugeValueP2 += GreatIncDec;
+                }
+                if (GoodP2Changed) {
+                    wHardGaugeValueP2 += GoodIncDec;
+                }
+                if (BadP2Changed) {
+                    wHardGaugeValueP2 += BadIncDec;
+                }
+
+                if(CbIfDowned.Checked == true) {
+                    if(wHardGaugeValueP1 == 0) wHardGaugeValueP2 = 0;
+                    if(wHardGaugeValueP2 == 0) wHardGaugeValueP1 = 0;
+                }
+
+                // 書き込みたいハードゲージの量
+                var wHardGaugeValueBytesP1 = BitConverter.GetBytes(wHardGaugeValueP1);
+
+                // 書き込みたいハードゲージの量
+                var wHardGaugeValueBytesP2 = BitConverter.GetBytes(wHardGaugeValueP2);
+
+                // 次郎のメモリにハードゲージのメモリ値に値を書き込むよ
+                Win32Api.WriteProcessMemory(jiro.Handle, HardGaugeValueP1Ptr, wHardGaugeValueBytesP1, READ_HARDGAUGE_VALUE_P1_SIZE, out HardGaugeValueP1Byte);
+                Win32Api.WriteProcessMemory(jiro.Handle, HardGaugeValueP2Ptr, wHardGaugeValueBytesP2, READ_HARDGAUGE_VALUE_P2_SIZE, out HardGaugeValueP2Byte);
+
+            }
+
             // 演奏中のtjaフルパス
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance); // memo: Shift-JISを扱うためのおまじない
             string TJAPath = Encoding.GetEncoding("shift_jis").GetString(TJAPathArray);
@@ -362,9 +494,10 @@ namespace JiroJudgeViewer {
             double GOGOScoreP1 = (double)now_tja.NotesListP1.Where(x => x.IsGOGO).Count() * 1.2 + now_tja.NotesListP1.Where(x => x.IsGOGO == false).Count();
             double GOGOScoreP2 = (double)now_tja.NotesListP2.Where(x => x.IsGOGO).Count() * 1.2 + now_tja.NotesListP2.Where(x => x.IsGOGO == false).Count();
 
+            // ノルマゲージの理論値を計算する
             double NormaGaugeValueMAXP1;
             double NormaGaugeValueMAXP2;
-            if(now_tja.LEVEL >= 9) {
+            if (now_tja.LEVEL >= 9) {
                 if (now_tja.TOTAL == 0) {
                     NormaGaugeValueMAXP1 = (GOGOScoreP1) * 1.4 + RoundDown(GOGOScoreP1 * 0.1, 1);
                     NormaGaugeValueMAXP2 = (GOGOScoreP2) * 1.4 + RoundDown(GOGOScoreP2 * 0.1, 1);
@@ -396,11 +529,11 @@ namespace JiroJudgeViewer {
             if (TotalScore < 50) Rating = 0;
             else if (TotalScore < 70) Rating = now_tja.LEVEL * (TotalScore - 50) / 20;
             else Rating = now_tja.LEVEL + (TotalScore - 70) / 10;
-            if(SbNotesP1 == 0) {
+            if (SbNotesP1 == 0) {
                 Rating += GetBonus(TotalScore, now_tja.LEVEL, BadP1);
             }
             Rating = RoundDown(Rating, 2);
-            
+
             double DownScoreP1 = GoodP1 == 0 && BadP1 == 0 ? 1000000 : RoundDown((double)(GreatP1 + GoodP1 * 0.5) / (double)NotesP1 * 1000000 + (SbNotesP1) / (double)NotesP1 * 1000000, 0);
             double DownScoreP2 = GoodP2 == 0 && BadP2 == 0 ? 1000000 : RoundDown((double)(GreatP2 + GoodP2 * 0.5) / (double)NotesP2 * 1000000 + (SbNotesP2) / (double)NotesP2 * 1000000, 0);
 
@@ -493,14 +626,14 @@ namespace JiroJudgeViewer {
 
             // 段位プレイ中（曲数情報）
             if (IsTJCArray[0] != 0) {
-                LbGaugeStatusP1.Text = HardGaugeStatusP1Array[0] == 0 ? $"ゲージ継続中（{HardGaugeValueP1:N2}%）" : "おちました泣泣泣";
-                LbGaugeStatusP2.Text = HardGaugeStatusP2Array[0] == 0 ? $"ゲージ継続中（{HardGaugeValueP2:N2}%）" : "おちました泣泣泣";
+                LbGaugeStatusP1.Text = HardGaugeStatusP1Array[0] == 0 ? $"継続中（{HardGaugeValueP1:N2}%）" : "おちました泣泣泣";
+                LbGaugeStatusP2.Text = HardGaugeStatusP2Array[0] == 0 ? $"継続中（{HardGaugeValueP2:N2}%）" : "おちました泣泣泣";
                 // ハードゲージ
             } else if (NormaGaugeArray[0] == 1) {
-                LbGaugeStatusP1.Text = HardGaugeStatusP1Array[0] == 0 ? $"ゲージ継続中（{HardGaugeValueP1:N2}%）" : "おちました泣泣泣";
-                LbGaugeStatusP2.Text = HardGaugeStatusP2Array[0] == 0 ? $"ゲージ継続中（{HardGaugeValueP2:N2}%）" : "おちました泣泣泣";
+                LbGaugeStatusP1.Text = HardGaugeStatusP1Array[0] == 0 ? $"継続中（{HardGaugeValueP1:N2}%）" : "おちました泣泣泣";
+                LbGaugeStatusP2.Text = HardGaugeStatusP2Array[0] == 0 ? $"継続中（{HardGaugeValueP2:N2}%）" : "おちました泣泣泣";
 
-            // ノーマルゲージ
+                // ノーマルゲージ
             } else {
                 double NormaGaugeShowP1 = NormaGaugeValueP1 / NormaGaugeValueMAXP1 * 100 >= 99.9 ? 100 : NormaGaugeValueP1 / NormaGaugeValueMAXP1 * 100;
                 double NormaGaugeShowP2 = NormaGaugeValueP2 / NormaGaugeValueMAXP2 * 100 >= 99.9 ? 100 : NormaGaugeValueP2 / NormaGaugeValueMAXP2 * 100;
@@ -533,6 +666,13 @@ namespace JiroJudgeViewer {
                         break;
                 }
             }
+
+            OldGreatP1 = GreatP1;
+            OldGoodP1 = GoodP1;
+            OldBadP1 = BadP1;
+            OldGreatP2 = GreatP2;
+            OldGoodP2 = GoodP2;
+            OldBadP2 = BadP2;
 
             if (HardGaugeStatusP1Array[0] != 0 && P1Defeted == false) {
                 P1Defeted = true;
@@ -575,7 +715,7 @@ namespace JiroJudgeViewer {
                 //    else if (level > BonusBaseRate) bonus = (level - BonusBaseRate) * APBonusOddsUpper;
                 //}
             }
-            if (score == 1000000) {
+            if (score == 100) {
                 if (level < 3) bonus += 0;
                 bonus += 0.4;
             }
@@ -833,6 +973,40 @@ namespace JiroJudgeViewer {
                     MessageBox.Show("もうなにもないよ");
                     break;
             }
+        }
+
+        private void LbTotalScore_Click(object sender, EventArgs e) {
+
+        }
+
+        // 演奏結果のコピー
+        private void BtResultCopy_Click(object sender, EventArgs e) {
+            Process[] jiro = Process.GetProcessesByName("taikojiro");
+            if (jiro.Length == 0) return;
+            string jirotitle = jiro[0].MainWindowTitle;
+            if (!jirotitle.Contains(">>")) {
+                MessageBox.Show("選曲画面です");
+                return;
+            }
+            if (LbExScore.Text == "0" && LbMAXMinus.Text == "0") {
+                MessageBox.Show("演奏前です");
+                return;
+            }
+            string a = UmeboshiString.CutToStart(jirotitle, "Level :");
+            string Title = CutToEnd(a, ">>").Trim();
+            // コピーする文字列の定義
+            string CopyString = $"TITLE:{Title}\r\n" +
+                                $"ExScore:{LbExScore.Text} MAX-{LbMAXMinus.Text}";
+            Clipboard.SetText(CopyString);
+            // TODO:グリップボードにコピー
+            MessageBox.Show("現在のリザルトをグリップボードにコピーしました。");
+        }
+
+        public string CutToEnd(string line, string selectstring) {
+            if (!line.Contains(selectstring)) {
+                return line;
+            }
+            return line.Substring(line.IndexOf(selectstring) + selectstring.Length);
         }
     }
 }

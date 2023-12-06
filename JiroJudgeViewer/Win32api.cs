@@ -41,7 +41,7 @@ namespace JiroJudgeViewer {
 		[DllImport("kernel32")]
 		public static extern int WriteProcessMemory(
 			IntPtr hProcess, IntPtr lpBaseAddress,
-			IntPtr lpBuffer, int nSize, out int lpNumberOfBytesWritten);
+			byte[] lpBuffer, int nSize, out int lpNumberOfBytesWritten);
 
 		[DllImport("kernel32", SetLastError = true)]
 		public static extern bool ReadProcessMemory(

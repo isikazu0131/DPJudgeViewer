@@ -52,6 +52,9 @@
             this.label7 = new System.Windows.Forms.Label();
             this.LbGaugeStatusP1 = new System.Windows.Forms.Label();
             this.LbGaugeStatusP2 = new System.Windows.Forms.Label();
+            this.BtResultCopy = new System.Windows.Forms.Button();
+            this.cbHardGauge = new System.Windows.Forms.ComboBox();
+            this.CbIfDowned = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // label4
@@ -68,9 +71,9 @@
             // 
             this.LbGrP1.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.LbGrP1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
-            this.LbGrP1.Location = new System.Drawing.Point(73, 9);
+            this.LbGrP1.Location = new System.Drawing.Point(74, 9);
             this.LbGrP1.Name = "LbGrP1";
-            this.LbGrP1.Size = new System.Drawing.Size(119, 48);
+            this.LbGrP1.Size = new System.Drawing.Size(118, 48);
             this.LbGrP1.TabIndex = 6;
             this.LbGrP1.Text = "0";
             this.LbGrP1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -81,7 +84,7 @@
             this.LbGdP1.ForeColor = System.Drawing.Color.Green;
             this.LbGdP1.Location = new System.Drawing.Point(198, 9);
             this.LbGdP1.Name = "LbGdP1";
-            this.LbGdP1.Size = new System.Drawing.Size(119, 48);
+            this.LbGdP1.Size = new System.Drawing.Size(118, 48);
             this.LbGdP1.TabIndex = 7;
             this.LbGdP1.Text = "0";
             this.LbGdP1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -92,7 +95,7 @@
             this.LbBdP1.ForeColor = System.Drawing.Color.Gray;
             this.LbBdP1.Location = new System.Drawing.Point(324, 9);
             this.LbBdP1.Name = "LbBdP1";
-            this.LbBdP1.Size = new System.Drawing.Size(119, 48);
+            this.LbBdP1.Size = new System.Drawing.Size(118, 48);
             this.LbBdP1.TabIndex = 8;
             this.LbBdP1.Text = "0";
             this.LbBdP1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -102,7 +105,7 @@
             this.LbSbNotesP1.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.LbSbNotesP1.Location = new System.Drawing.Point(290, 192);
             this.LbSbNotesP1.Name = "LbSbNotesP1";
-            this.LbSbNotesP1.Size = new System.Drawing.Size(125, 48);
+            this.LbSbNotesP1.Size = new System.Drawing.Size(124, 48);
             this.LbSbNotesP1.TabIndex = 9;
             this.LbSbNotesP1.Text = "0";
             this.LbSbNotesP1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -115,7 +118,7 @@
             // 
             this.Rat.AutoSize = true;
             this.Rat.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.Rat.Location = new System.Drawing.Point(12, 347);
+            this.Rat.Location = new System.Drawing.Point(12, 346);
             this.Rat.Name = "Rat";
             this.Rat.Size = new System.Drawing.Size(162, 48);
             this.Rat.TabIndex = 12;
@@ -124,9 +127,9 @@
             // LbRating
             // 
             this.LbRating.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.LbRating.Location = new System.Drawing.Point(180, 347);
+            this.LbRating.Location = new System.Drawing.Point(180, 346);
             this.LbRating.Name = "LbRating";
-            this.LbRating.Size = new System.Drawing.Size(214, 48);
+            this.LbRating.Size = new System.Drawing.Size(168, 48);
             this.LbRating.TabIndex = 13;
             this.LbRating.Text = "0.00";
             this.LbRating.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -144,7 +147,7 @@
             // LbScoreP1
             // 
             this.LbScoreP1.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.LbScoreP1.Location = new System.Drawing.Point(449, 9);
+            this.LbScoreP1.Location = new System.Drawing.Point(448, 9);
             this.LbScoreP1.Name = "LbScoreP1";
             this.LbScoreP1.Size = new System.Drawing.Size(168, 48);
             this.LbScoreP1.TabIndex = 17;
@@ -164,7 +167,7 @@
             // LbScoreP2
             // 
             this.LbScoreP2.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.LbScoreP2.Location = new System.Drawing.Point(449, 57);
+            this.LbScoreP2.Location = new System.Drawing.Point(448, 57);
             this.LbScoreP2.Name = "LbScoreP2";
             this.LbScoreP2.Size = new System.Drawing.Size(168, 48);
             this.LbScoreP2.TabIndex = 23;
@@ -187,7 +190,7 @@
             this.LbBdP2.ForeColor = System.Drawing.Color.Gray;
             this.LbBdP2.Location = new System.Drawing.Point(324, 57);
             this.LbBdP2.Name = "LbBdP2";
-            this.LbBdP2.Size = new System.Drawing.Size(119, 48);
+            this.LbBdP2.Size = new System.Drawing.Size(118, 48);
             this.LbBdP2.TabIndex = 21;
             this.LbBdP2.Text = "0";
             this.LbBdP2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -198,7 +201,7 @@
             this.LbGdP2.ForeColor = System.Drawing.Color.Green;
             this.LbGdP2.Location = new System.Drawing.Point(198, 57);
             this.LbGdP2.Name = "LbGdP2";
-            this.LbGdP2.Size = new System.Drawing.Size(119, 48);
+            this.LbGdP2.Size = new System.Drawing.Size(118, 48);
             this.LbGdP2.TabIndex = 20;
             this.LbGdP2.Text = "0";
             this.LbGdP2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -207,9 +210,9 @@
             // 
             this.LbGrP2.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.LbGrP2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(0)))));
-            this.LbGrP2.Location = new System.Drawing.Point(73, 57);
+            this.LbGrP2.Location = new System.Drawing.Point(74, 57);
             this.LbGrP2.Name = "LbGrP2";
-            this.LbGrP2.Size = new System.Drawing.Size(119, 48);
+            this.LbGrP2.Size = new System.Drawing.Size(118, 48);
             this.LbGrP2.TabIndex = 19;
             this.LbGrP2.Text = "0";
             this.LbGrP2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -219,26 +222,28 @@
             this.LbSbNotesP2.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.LbSbNotesP2.Location = new System.Drawing.Point(290, 240);
             this.LbSbNotesP2.Name = "LbSbNotesP2";
-            this.LbSbNotesP2.Size = new System.Drawing.Size(125, 48);
+            this.LbSbNotesP2.Size = new System.Drawing.Size(124, 48);
             this.LbSbNotesP2.TabIndex = 24;
             this.LbSbNotesP2.Text = "0";
             this.LbSbNotesP2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // LbTotalScore
             // 
+            this.LbTotalScore.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.LbTotalScore.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.LbTotalScore.Location = new System.Drawing.Point(659, 240);
+            this.LbTotalScore.Location = new System.Drawing.Point(770, 118);
             this.LbTotalScore.Name = "LbTotalScore";
-            this.LbTotalScore.Size = new System.Drawing.Size(214, 48);
+            this.LbTotalScore.Size = new System.Drawing.Size(168, 48);
             this.LbTotalScore.TabIndex = 25;
             this.LbTotalScore.Text = "0.00%";
             this.LbTotalScore.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.LbTotalScore.Click += new System.EventHandler(this.LbTotalScore_Click);
             // 
             // LbISRESULT
             // 
             this.LbISRESULT.AutoSize = true;
             this.LbISRESULT.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.LbISRESULT.Location = new System.Drawing.Point(12, 299);
+            this.LbISRESULT.Location = new System.Drawing.Point(12, 298);
             this.LbISRESULT.Name = "LbISRESULT";
             this.LbISRESULT.Size = new System.Drawing.Size(118, 48);
             this.LbISRESULT.TabIndex = 26;
@@ -248,8 +253,9 @@
             // label2
             // 
             this.label2.AutoSize = true;
+            this.label2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.label2.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label2.Location = new System.Drawing.Point(442, 240);
+            this.label2.Location = new System.Drawing.Point(566, 118);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(211, 48);
             this.label2.TabIndex = 27;
@@ -257,7 +263,7 @@
             // 
             // BtResultOutput
             // 
-            this.BtResultOutput.Location = new System.Drawing.Point(738, 406);
+            this.BtResultOutput.Location = new System.Drawing.Point(656, 333);
             this.BtResultOutput.Name = "BtResultOutput";
             this.BtResultOutput.Size = new System.Drawing.Size(282, 62);
             this.BtResultOutput.TabIndex = 28;
@@ -267,8 +273,9 @@
             // 
             // LbExScore
             // 
+            this.LbExScore.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.LbExScore.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.LbExScore.Location = new System.Drawing.Point(202, 119);
+            this.LbExScore.Location = new System.Drawing.Point(190, 118);
             this.LbExScore.Name = "LbExScore";
             this.LbExScore.Size = new System.Drawing.Size(116, 48);
             this.LbExScore.TabIndex = 30;
@@ -278,8 +285,9 @@
             // label6
             // 
             this.label6.AutoSize = true;
+            this.label6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.label6.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label6.Location = new System.Drawing.Point(12, 119);
+            this.label6.Location = new System.Drawing.Point(12, 118);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(184, 48);
             this.label6.TabIndex = 29;
@@ -287,8 +295,9 @@
             // 
             // LbMAXMinus
             // 
+            this.LbMAXMinus.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(224)))), ((int)(((byte)(192)))));
             this.LbMAXMinus.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.LbMAXMinus.Location = new System.Drawing.Point(442, 119);
+            this.LbMAXMinus.Location = new System.Drawing.Point(434, 118);
             this.LbMAXMinus.Name = "LbMAXMinus";
             this.LbMAXMinus.Size = new System.Drawing.Size(118, 48);
             this.LbMAXMinus.TabIndex = 32;
@@ -298,8 +307,9 @@
             // label7
             // 
             this.label7.AutoSize = true;
+            this.label7.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(224)))), ((int)(((byte)(192)))));
             this.label7.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.label7.Location = new System.Drawing.Point(324, 119);
+            this.label7.Location = new System.Drawing.Point(324, 118);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(112, 48);
             this.label7.TabIndex = 31;
@@ -309,27 +319,65 @@
             // 
             this.LbGaugeStatusP1.AutoSize = true;
             this.LbGaugeStatusP1.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.LbGaugeStatusP1.Location = new System.Drawing.Point(623, 9);
+            this.LbGaugeStatusP1.Location = new System.Drawing.Point(622, 9);
             this.LbGaugeStatusP1.Name = "LbGaugeStatusP1";
-            this.LbGaugeStatusP1.Size = new System.Drawing.Size(103, 48);
+            this.LbGaugeStatusP1.Size = new System.Drawing.Size(0, 48);
             this.LbGaugeStatusP1.TabIndex = 33;
-            this.LbGaugeStatusP1.Text = "クリア";
             // 
             // LbGaugeStatusP2
             // 
             this.LbGaugeStatusP2.AutoSize = true;
             this.LbGaugeStatusP2.Font = new System.Drawing.Font("Yu Gothic UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.LbGaugeStatusP2.Location = new System.Drawing.Point(623, 57);
+            this.LbGaugeStatusP2.Location = new System.Drawing.Point(622, 57);
             this.LbGaugeStatusP2.Name = "LbGaugeStatusP2";
-            this.LbGaugeStatusP2.Size = new System.Drawing.Size(103, 48);
+            this.LbGaugeStatusP2.Size = new System.Drawing.Size(0, 48);
             this.LbGaugeStatusP2.TabIndex = 34;
-            this.LbGaugeStatusP2.Text = "クリア";
+            // 
+            // BtResultCopy
+            // 
+            this.BtResultCopy.Location = new System.Drawing.Point(656, 266);
+            this.BtResultCopy.Name = "BtResultCopy";
+            this.BtResultCopy.Size = new System.Drawing.Size(282, 62);
+            this.BtResultCopy.TabIndex = 35;
+            this.BtResultCopy.Text = "現在の結果を\r\nグリップボードにコピー";
+            this.BtResultCopy.UseVisualStyleBackColor = true;
+            this.BtResultCopy.Click += new System.EventHandler(this.BtResultCopy_Click);
+            // 
+            // cbHardGauge
+            // 
+            this.cbHardGauge.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbHardGauge.FormattingEnabled = true;
+            this.cbHardGauge.Items.AddRange(new object[] {
+            "通常ハードゲージ",
+            "超ハードゲージ",
+            "バカハードゲージ",
+            "回復なしモード",
+            "フレアゲージ",
+            "フレアEXゲージ",
+            "可のみゲージ"});
+            this.cbHardGauge.Location = new System.Drawing.Point(656, 227);
+            this.cbHardGauge.Name = "cbHardGauge";
+            this.cbHardGauge.Size = new System.Drawing.Size(282, 33);
+            this.cbHardGauge.TabIndex = 36;
+            // 
+            // CbIfDowned
+            // 
+            this.CbIfDowned.AutoSize = true;
+            this.CbIfDowned.Location = new System.Drawing.Point(577, 192);
+            this.CbIfDowned.Name = "CbIfDowned";
+            this.CbIfDowned.Size = new System.Drawing.Size(361, 29);
+            this.CbIfDowned.TabIndex = 37;
+            this.CbIfDowned.Text = "ハードゲージで片方が落ちた時に強制終了する";
+            this.CbIfDowned.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1032, 480);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(144F, 144F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.ClientSize = new System.Drawing.Size(950, 410);
+            this.Controls.Add(this.CbIfDowned);
+            this.Controls.Add(this.cbHardGauge);
+            this.Controls.Add(this.BtResultCopy);
             this.Controls.Add(this.LbGaugeStatusP2);
             this.Controls.Add(this.LbGaugeStatusP1);
             this.Controls.Add(this.LbMAXMinus);
@@ -394,5 +442,8 @@
         private Label label7;
         private Label LbGaugeStatusP1;
         private Label LbGaugeStatusP2;
+        private Button BtResultCopy;
+        private ComboBox cbHardGauge;
+        private CheckBox CbIfDowned;
     }
 }

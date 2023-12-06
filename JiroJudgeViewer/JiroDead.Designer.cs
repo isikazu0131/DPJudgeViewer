@@ -35,9 +35,10 @@
             // button1
             // 
             this.button1.Font = new System.Drawing.Font("Yu Gothic UI", 100F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button1.Location = new System.Drawing.Point(12, 358);
+            this.button1.Location = new System.Drawing.Point(8, 215);
+            this.button1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(829, 485);
+            this.button1.Size = new System.Drawing.Size(580, 351);
             this.button1.TabIndex = 0;
             this.button1.Text = "オッケイ";
             this.button1.UseVisualStyleBackColor = true;
@@ -47,9 +48,10 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("ＭＳ ゴシック", 125F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label1.Location = new System.Drawing.Point(-25, 190);
+            this.label1.Location = new System.Drawing.Point(-18, 114);
+            this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(1355, 250);
+            this.label1.Size = new System.Drawing.Size(910, 167);
             this.label1.TabIndex = 1;
             this.label1.Text = "ふざけんな";
             // 
@@ -57,18 +59,20 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("ＭＳ ゴシック", 48F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.label2.Location = new System.Drawing.Point(12, 41);
+            this.label2.Location = new System.Drawing.Point(8, 25);
+            this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(1194, 194);
+            this.label2.Size = new System.Drawing.Size(795, 128);
             this.label2.TabIndex = 2;
             this.label2.Text = "オイ！次郎落ちてんじゃね\r\nえか！！！！！！！！！";
             // 
             // pictureBox1
             // 
             this.pictureBox1.Image = global::JiroJudgeViewer.Properties.Resources.ng;
-            this.pictureBox1.Location = new System.Drawing.Point(669, 372);
+            this.pictureBox1.Location = new System.Drawing.Point(468, 223);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(685, 315);
+            this.pictureBox1.Size = new System.Drawing.Size(480, 189);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 3;
             this.pictureBox1.TabStop = false;
@@ -76,23 +80,25 @@
             // pictureBox2
             // 
             this.pictureBox2.Image = global::JiroJudgeViewer.Properties.Resources.ng;
-            this.pictureBox2.Location = new System.Drawing.Point(524, 625);
+            this.pictureBox2.Location = new System.Drawing.Point(431, 368);
+            this.pictureBox2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(433, 541);
+            this.pictureBox2.Size = new System.Drawing.Size(303, 325);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 4;
             this.pictureBox2.TabStop = false;
             // 
             // JiroDead
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1143, 855);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.ClientSize = new System.Drawing.Size(847, 577);
             this.Controls.Add(this.pictureBox2);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.button1);
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "JiroDead";
             this.Text = "死亡";
             this.Shown += new System.EventHandler(this.JiroDead_Shown);
