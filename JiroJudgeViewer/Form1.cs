@@ -7,8 +7,11 @@ using UmeboshiLibrary;
 namespace JiroJudgeViewer {
     public partial class Form1 : Form {
 
+        ResultViewer resultViewer = new ResultViewer();
+
         JiroDead jiroDead;
-        private const string VERSION = "V0.5";
+        private bool isAuto = false;
+        private const string VERSION = "V0.6.3";
 
         private const string RESULT_FOLDER = @".\Result";
         private const string HOZONWAVE = @".\Wave\Hozon.wav";
@@ -16,6 +19,7 @@ namespace JiroJudgeViewer {
         private const string P2DEFETEDWAVE = @".\Wave\p2die.wav";
 
         private System.Diagnostics.Process jiro;
+        private string JiroEXEPath = "";
 
         Shionamensa shionamensa;
         ShionamensaP2 shionamensaP2;
@@ -26,6 +30,12 @@ namespace JiroJudgeViewer {
         private bool P2Defeted;
 
         private int OBAKAcount;
+        private bool IsPlaying;
+
+        /// <summary>
+        /// TJA再生開始時間 (ms)
+        /// </summary>
+        private int StartTime;
 
         // 直前の判定
         private int OldGreatP1 = 0;
@@ -34,6 +44,9 @@ namespace JiroJudgeViewer {
         private int OldGreatP2 = 0;
         private int OldGoodP2 = 0;
         private int OldBadP2 = 0;
+
+        // コンボ統一用
+        private int UnityCombo = 0;
 
         // ハードゲージ強制書き換えモード用
         int wHardGaugeValueP1 = 0;
@@ -55,8 +68,11 @@ namespace JiroJudgeViewer {
             }
 
             IsResult = false;
+            IsPlaying = false;
             P1Defeted = false;
             P2Defeted = false;
+
+            StartTime = 0;
 
             this.TopMost = true;
             var jiros = System.Diagnostics.Process.GetProcessesByName("taikojiro");
@@ -65,6 +81,7 @@ namespace JiroJudgeViewer {
             } else {
 
                 jiro = jiros[0];
+                JiroEXEPath = jiro.MainModule.FileName;
             }
             timer1.Interval = 16;
             timer1.Start();
@@ -88,7 +105,8 @@ namespace JiroJudgeViewer {
             }
             if (jiro.HasExited) {
                 if (!jiroDead.Visible) {
-                    if (jiroDead.ShowDialog() == DialogResult.OK) {
+                    var a = jiroDead.ShowDialog();
+                    if (a == DialogResult.OK || a == DialogResult.Cancel) {
                         this.Close();
                     }
                 }
@@ -164,6 +182,21 @@ namespace JiroJudgeViewer {
             const int ISPLAYING_ADDRESS = 0x0007E4E2;
             const int READ_ISPLAYING_SIZE = 1;
 
+            // 叩いたタイミング？
+            const int TIMING_P1_SCROLLED_ADDRESS = 0x0007B6D0;
+            const int TIMING_P1_SCROLLED_SIZE = 4;
+            const int TIMING_P2_SCROLLED_ADDRESS = 0x0007B6D4;
+            const int TIMING_P2_SCROLLED_SIZE = 4;
+
+            // 演奏開始時刻？
+            const int START_TIME_ADDRESS = 0x0007BB68;
+            const int START_TIME_SIZE = 4;
+
+            const int COMBO_P1_ADDRESS = 0x0007C770;
+            const int COMBO_P1_SIZE = 2;
+            const int COMBO_P2_ADDRESS = 0x0007C950;
+            const int COMBO_P2_SIZE = 2;
+
             byte[] GreatP1Array = new byte[READ_GREAT_P1_SIZE];
             byte[] GoodP1Array = new byte[READ_GOOD_P1_SIZE];
             byte[] BadP1Array = new byte[READ_BAD_P1_SIZE];
@@ -198,6 +231,14 @@ namespace JiroJudgeViewer {
             byte[] HanteiArray = new byte[HANTEI_SECONDS_SIZE];
 
             byte[] IsPlayingArray = new byte[READ_ISPLAYING_SIZE];
+
+            byte[] TimingP1ScrolledArray = new byte[TIMING_P1_SCROLLED_SIZE];
+            byte[] TimingP2ScrolledArray = new byte[TIMING_P2_SCROLLED_SIZE];
+
+            byte[] StartTimeArray = new byte[START_TIME_SIZE];
+
+            byte[] ComboP1Array = new byte[COMBO_P1_SIZE];
+            byte[] ComboP2Arrat = new byte[COMBO_P2_SIZE];
 
             IntPtr GreatP1Ptr = new IntPtr(GREAT_P1_ADDRESS + jiroBaseAddress);
             IntPtr GoodP1Ptr = new IntPtr(GOOD_P1_ADDRESS + jiroBaseAddress);
@@ -234,6 +275,16 @@ namespace JiroJudgeViewer {
 
             IntPtr IsPlayingPtr = new IntPtr(ISPLAYING_ADDRESS + jiroBaseAddress);
 
+            IntPtr TimingP1ScrolledPtr = new IntPtr(TIMING_P1_SCROLLED_ADDRESS + jiroBaseAddress);
+            IntPtr TimingP2ScrolledPtr = new IntPtr(TIMING_P2_SCROLLED_ADDRESS + jiroBaseAddress);
+
+            IntPtr StartTimePtr = new IntPtr(START_TIME_ADDRESS + jiroBaseAddress);
+
+            IntPtr ComboP1Ptr = new IntPtr(COMBO_P1_ADDRESS + jiroBaseAddress);
+            IntPtr ComboP2Ptr = new IntPtr(COMBO_P2_ADDRESS + jiroBaseAddress);
+
+            // ↓読み込んだ結果のバイト数↓（数値的な意味はない）
+
             int GreatP1Byte;
             int GoodP1Byte;
             int BadP1Byte;
@@ -266,6 +317,14 @@ namespace JiroJudgeViewer {
             int TJAPathByte;
 
             int IsPlayingByte;
+
+            int TimingP1Byte;
+            int TimingP2Byte;
+
+            int StartTimeByte;
+
+            int ComboP1Byte;
+            int ComboP2Byte;
 
             if (!Win32Api.ReadProcessMemory(jiro.Handle, GreatP1Ptr, GreatP1Array, READ_GREAT_P1_SIZE, out GreatP1Byte)) {
                 LbGrP1.Text = $"取得できませんでした";
@@ -333,6 +392,14 @@ namespace JiroJudgeViewer {
             Win32Api.ReadProcessMemory(jiro.Handle, AutoP1Ptr, AutoP1Array, READ_AUTO_P1_SIZE, out AutoP1Byte);
             Win32Api.ReadProcessMemory(jiro.Handle, AutoP2Ptr, AutoP2Array, READ_AUTO_P2_SIZE, out AutoP2Byte);
 
+            // 叩いたタイミング？
+            Win32Api.ReadProcessMemory(jiro.Handle, TimingP1ScrolledPtr, TimingP1ScrolledArray, TIMING_P1_SCROLLED_SIZE, out TimingP1Byte);
+            Win32Api.ReadProcessMemory(jiro.Handle, TimingP2ScrolledPtr, TimingP2ScrolledArray, TIMING_P2_SCROLLED_SIZE, out TimingP2Byte);
+
+            // 演奏開始時刻？
+            Win32Api.ReadProcessMemory(jiro.Handle, StartTimePtr, StartTimeArray, START_TIME_SIZE, out StartTimeByte);
+
+
             bool isAutoP1 = AutoP1Array[0] == 1;
             bool isAutoP2 = AutoP2Array[0] == 1;
             //if (!Win32Api.ReadProcessMemory(jiro.Handle, HanteiPtr, HanteiArray, READ_NOTES_SIZE, out NotesByte)) {
@@ -364,116 +431,6 @@ namespace JiroJudgeViewer {
             int EXScore = GreatP1 * 2 + GoodP1 + GreatP2 * 2 + GoodP2;
             int MAXMinus = GoodP1 + BadP1 * 2 + GoodP2 + BadP2 * 2;
 
-            // 各判定の値が変化したかどうか
-            bool GreatP1Changed = OldGreatP1 != GreatP1;
-            bool GoodP1Changed = OldGoodP1 != GoodP1;
-            bool BadP1Changed = OldBadP1 != BadP1;
-            bool GreatP2Changed = OldGreatP2 != GreatP2;
-            bool GoodP2Changed = OldGoodP2 != GoodP2;
-            bool BadP2Changed = OldBadP2 != BadP2;
-
-            // ハードゲージの強制書き込み
-            // ハードゲージの初期値と良、可、不可の増減値
-            int HardGaugeInit = 10000;
-            int GreatIncDec = 0;
-            int GoodIncDec = 0;
-            int BadIncDec = 0;
-            switch (cbHardGauge.SelectedIndex) {
-                // 通常ハードゲージ
-                case 0:
-                    break;
-                // 超ハードゲージ
-                case 1:
-                    GreatIncDec = 16;
-                    GoodIncDec = -100;
-                    BadIncDec = -1200;
-                    break;
-                // バカハードゲージ
-                case 2:
-                    GreatIncDec = 16;
-                    GoodIncDec = -250;
-                    BadIncDec = -3600;
-                    break;
-                // 回復なしハードゲージ
-                case 3:
-                    GreatIncDec = 0;
-                    GreatIncDec = 0;
-                    BadIncDec = -900;
-                    break;
-                // フレアゲージ
-                case 4:
-                    GreatIncDec = 0;
-                    GoodIncDec = -300;
-                    BadIncDec = -3334;
-                    break;
-                // 回復なしフレアEXゲージ
-                case 5:
-                    GreatIncDec = 0;
-                    GoodIncDec = -1000;
-                    BadIncDec = -5000;
-                    break;
-                // 可のみゲージ
-                case 6:
-                    GreatIncDec = -400;
-                    GoodIncDec = 50;
-                    BadIncDec = -400;
-                    break;
-                default:
-                    break;
-            }
-
-
-            // ハードゲージ強制書き換えモード
-            if (cbHardGauge.SelectedIndex != 0) {
-
-                // プレイ中じゃなければゲージは初期値に
-                if (IsPlayingArray[0] == 0) {
-                    wHardGaugeValueP1 = HardGaugeInit;
-                    wHardGaugeValueP2 = HardGaugeInit;
-                }
-
-                if (wHardGaugeValueP1 < 0) wHardGaugeValueP1 = 0;
-                if (wHardGaugeValueP1 > 10000) wHardGaugeValueP1 = 10000;
-                if (wHardGaugeValueP2 > 10000) wHardGaugeValueP2 = 10000;
-                if (wHardGaugeValueP2 < 0) wHardGaugeValueP2 = 0;
-
-                // 変化した判定に合わせて各ゲージを変化させる
-                if (GreatP1Changed) {
-                    wHardGaugeValueP1 += GreatIncDec;
-                }
-                if (GoodP1Changed) {
-                    wHardGaugeValueP1 += GoodIncDec;
-                }
-                if (BadP1Changed) {
-                    wHardGaugeValueP1 += BadIncDec;
-                }
-                if (GreatP2Changed) {
-                    wHardGaugeValueP2 += GreatIncDec;
-                }
-                if (GoodP2Changed) {
-                    wHardGaugeValueP2 += GoodIncDec;
-                }
-                if (BadP2Changed) {
-                    wHardGaugeValueP2 += BadIncDec;
-                }
-
-                if(CbIfDowned.Checked == true) {
-                    if(wHardGaugeValueP1 == 0) wHardGaugeValueP2 = 0;
-                    if(wHardGaugeValueP2 == 0) wHardGaugeValueP1 = 0;
-                }
-
-                // 書き込みたいハードゲージの量
-                var wHardGaugeValueBytesP1 = BitConverter.GetBytes(wHardGaugeValueP1);
-
-                // 書き込みたいハードゲージの量
-                var wHardGaugeValueBytesP2 = BitConverter.GetBytes(wHardGaugeValueP2);
-
-                // 次郎のメモリにハードゲージのメモリ値に値を書き込むよ
-                Win32Api.WriteProcessMemory(jiro.Handle, HardGaugeValueP1Ptr, wHardGaugeValueBytesP1, READ_HARDGAUGE_VALUE_P1_SIZE, out HardGaugeValueP1Byte);
-                Win32Api.WriteProcessMemory(jiro.Handle, HardGaugeValueP2Ptr, wHardGaugeValueBytesP2, READ_HARDGAUGE_VALUE_P2_SIZE, out HardGaugeValueP2Byte);
-
-            }
-
             // 演奏中のtjaフルパス
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance); // memo: Shift-JISを扱うためのおまじない
             string TJAPath = Encoding.GetEncoding("shift_jis").GetString(TJAPathArray);
@@ -485,6 +442,21 @@ namespace JiroJudgeViewer {
             } else if (TJAPath.Contains(".tjc")) {
                 TJAPath = TJAPath.Substring(0, TJAPath.IndexOf(@".tjc") + 4);
             }
+
+            // オートの場合強制終了
+            //if(isAutoP1 || isAutoP2) {
+            //    AutoZuruForm autoZuruForm = new AutoZuruForm();
+            //    if (isAuto == false) {
+            //        isAuto = true;
+            //        var a = autoZuruForm.ShowDialog();
+            //        if (a == DialogResult.OK) {
+            //            this.Close();
+            //        } else {
+            //            isAuto = false;
+            //        }
+
+            //    }
+            //}
 
             TJA now_tja = new TJA(new FileInfo(TJAPath));
 
@@ -537,14 +509,221 @@ namespace JiroJudgeViewer {
             double DownScoreP1 = GoodP1 == 0 && BadP1 == 0 ? 1000000 : RoundDown((double)(GreatP1 + GoodP1 * 0.5) / (double)NotesP1 * 1000000 + (SbNotesP1) / (double)NotesP1 * 1000000, 0);
             double DownScoreP2 = GoodP2 == 0 && BadP2 == 0 ? 1000000 : RoundDown((double)(GreatP2 + GoodP2 * 0.5) / (double)NotesP2 * 1000000 + (SbNotesP2) / (double)NotesP2 * 1000000, 0);
 
+
+            // 各判定の値が変化したかどうか
+            bool GreatP1Changed = OldGreatP1 != GreatP1;
+            bool GoodP1Changed = OldGoodP1 != GoodP1;
+            bool BadP1Changed = OldBadP1 != BadP1;
+            bool GreatP2Changed = OldGreatP2 != GreatP2;
+            bool GoodP2Changed = OldGoodP2 != GoodP2;
+            bool BadP2Changed = OldBadP2 != BadP2;
+
+            int P1Time = 0;
+            int P2Time = 0;
+
+
+            // 演奏開始時間取得
+            if (IsPlaying == false && IsPlayingArray[0] == 1) {
+                IsPlaying = true;
+                StartTime = BitConverter.ToInt32(StartTimeArray);
+                LbStartTime.Text = StartTime.ToString();
+            } else if (IsPlaying == true && IsPlayingArray[0] == 0) {
+                IsPlaying = false;
+            }
+            // タイミング表示
+            if (GreatP1Changed || GoodP1Changed) {
+                P1Time = BitConverter.ToInt32(TimingP1ScrolledArray) - StartTime;
+                LbTimingP1.Text = P1Time.ToString();
+            }
+            if (GreatP2Changed || GoodP2Changed) {
+                P2Time = BitConverter.ToInt32(TimingP2ScrolledArray) - StartTime;
+                LbTimingP2.Text = P2Time.ToString();
+            }
+
+            // ハードゲージの強制書き込み
+            // ハードゲージの初期値と良、可、不可の増減値
+            int HardGaugeInit = 10000;
+            int GreatIncDec = 0;
+            int GoodIncDec = 0;
+            int BadIncDec = 0;
+            switch (cbHardGauge.SelectedIndex) {
+                // 通常ハードゲージ
+                case 0:
+                    break;
+                // 超ハードゲージ
+                case 1:
+                    GreatIncDec = 16;
+                    GoodIncDec = -100;
+                    BadIncDec = -1200;
+                    break;
+                // バカハードゲージ
+                case 2:
+                    GreatIncDec = 16;
+                    GoodIncDec = -250;
+                    BadIncDec = -3600;
+                    break;
+                // 回復なしハードゲージ
+                case 3:
+                    GreatIncDec = 0;
+                    GreatIncDec = 0;
+                    BadIncDec = -900;
+                    break;
+                // フレアゲージ
+                case 4:
+                    GreatIncDec = 0;
+                    GoodIncDec = -300;
+                    BadIncDec = -3334;
+                    break;
+                // 回復なしフレアEXゲージ
+                case 5:
+                    GreatIncDec = 0;
+                    GoodIncDec = -1000;
+                    BadIncDec = -5000;
+                    break;
+                // 可のみゲージ
+                case 6:
+                    GreatIncDec = -400;
+                    GoodIncDec = 50;
+                    BadIncDec = -400;
+                    break;
+                // 運だめしゲージ
+                case 7:
+                    Random random = new Random();
+                    if (GoodP1Changed || GoodP2Changed || BadP1Changed || BadP2Changed) {
+                        var ran = random.Next(1, 100);
+                        if (ran == 1) {
+                            wHardGaugeValueP1 = 0;
+                            wHardGaugeValueP2 = 0;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+
+            // ハードゲージ強制書き換えモード
+            if (cbHardGauge.SelectedIndex != 0) {
+
+                // プレイ中じゃなければゲージは初期値に
+                if (IsPlayingArray[0] == 0) {
+                    wHardGaugeValueP1 = HardGaugeInit;
+                    wHardGaugeValueP2 = HardGaugeInit;
+                }
+
+                if (wHardGaugeValueP1 < 0) wHardGaugeValueP1 = 0;
+                if (wHardGaugeValueP1 > 10000) wHardGaugeValueP1 = 10000;
+                if (wHardGaugeValueP2 > 10000) wHardGaugeValueP2 = 10000;
+                if (wHardGaugeValueP2 < 0) wHardGaugeValueP2 = 0;
+
+                // 変化した判定に合わせて各ゲージを変化させる
+                if (GreatP1Changed) {
+                    wHardGaugeValueP1 += GreatIncDec;
+                }
+                if (GoodP1Changed) {
+                    wHardGaugeValueP1 += GoodIncDec;
+                }
+                if (BadP1Changed) {
+                    wHardGaugeValueP1 += BadIncDec;
+                }
+                if (GreatP2Changed) {
+                    wHardGaugeValueP2 += GreatIncDec;
+                }
+                if (GoodP2Changed) {
+                    wHardGaugeValueP2 += GoodIncDec;
+                }
+                if (BadP2Changed) {
+                    wHardGaugeValueP2 += BadIncDec;
+                }
+
+                if (CbIfDowned.Checked == true) {
+                    if (wHardGaugeValueP1 == 0) wHardGaugeValueP2 = 0;
+                    if (wHardGaugeValueP2 == 0) wHardGaugeValueP1 = 0;
+                }
+
+                // 書き込みたいハードゲージの量
+                var wHardGaugeValueBytesP1 = BitConverter.GetBytes(wHardGaugeValueP1);
+
+                // 書き込みたいハードゲージの量
+                var wHardGaugeValueBytesP2 = BitConverter.GetBytes(wHardGaugeValueP2);
+
+                // 次郎のメモリにハードゲージのメモリ値に値を書き込むよ
+                Win32Api.WriteProcessMemory(jiro.Handle, HardGaugeValueP1Ptr, wHardGaugeValueBytesP1, READ_HARDGAUGE_VALUE_P1_SIZE, out HardGaugeValueP1Byte);
+                Win32Api.WriteProcessMemory(jiro.Handle, HardGaugeValueP2Ptr, wHardGaugeValueBytesP2, READ_HARDGAUGE_VALUE_P2_SIZE, out HardGaugeValueP2Byte);
+
+            } else {
+                if (CbIfDowned.Checked == true) {
+                    if (HardGaugeValueP1 == 0) {
+                        wHardGaugeValueP2 = 0;
+                        // 書き込みたいハードゲージの量
+                        var wHardGaugeValueBytesP2 = BitConverter.GetBytes(wHardGaugeValueP2);
+                        // 次郎のメモリにハードゲージのメモリ値に値を書き込むよ
+                        Win32Api.WriteProcessMemory(jiro.Handle, HardGaugeValueP2Ptr, wHardGaugeValueBytesP2, READ_HARDGAUGE_VALUE_P2_SIZE, out HardGaugeValueP2Byte);
+
+                    }
+                    if (HardGaugeValueP2 == 0) {
+                        wHardGaugeValueP1 = 0;
+                        // 書き込みたいハードゲージの量
+                        var wHardGaugeValueBytesP1 = BitConverter.GetBytes(wHardGaugeValueP1);
+                        // 次郎のメモリにハードゲージのメモリ値に値を書き込むよ
+
+                        Win32Api.WriteProcessMemory(jiro.Handle, HardGaugeValueP1Ptr, wHardGaugeValueBytesP1, READ_HARDGAUGE_VALUE_P1_SIZE, out HardGaugeValueP1Byte);
+
+                    }
+                }
+            }
+
+            // P1P2コンボ統一
+            if (CbComboUnity.Checked) {
+                if (IsPlaying == false) {
+                    UnityCombo = 0;
+                }
+                if (GreatP1Changed || GoodP1Changed) {
+                    UnityCombo++;
+                    // 書き込みたいハードゲージの量
+                    var wUnityComboBytes = BitConverter.GetBytes(UnityCombo);
+                    // 次郎のメモリにハードゲージのメモリ値に値を書き込むよ
+
+                    Win32Api.WriteProcessMemory(jiro.Handle, ComboP1Ptr, wUnityComboBytes, COMBO_P1_SIZE, out ComboP1Byte);
+                    Win32Api.WriteProcessMemory(jiro.Handle, ComboP2Ptr, wUnityComboBytes, COMBO_P2_SIZE, out ComboP2Byte);
+
+                }
+                if (GreatP2Changed || GoodP2Changed) {
+                    UnityCombo++;
+                    // 書き込みたいハードゲージの量
+                    var wUnityComboBytes = BitConverter.GetBytes(UnityCombo);
+                    // 次郎のメモリにハードゲージのメモリ値に値を書き込むよ
+
+                    Win32Api.WriteProcessMemory(jiro.Handle, ComboP1Ptr, wUnityComboBytes, COMBO_P1_SIZE, out ComboP1Byte);
+                    Win32Api.WriteProcessMemory(jiro.Handle, ComboP2Ptr, wUnityComboBytes, COMBO_P2_SIZE, out ComboP2Byte);
+
+                }
+                if (BadP1Changed || BadP2Changed) {
+                    UnityCombo = 0;
+                    // 書き込みたいハードゲージの量
+                    var wUnityComboBytes = BitConverter.GetBytes(UnityCombo);
+                    // 次郎のメモリにハードゲージのメモリ値に値を書き込むよ
+
+                    Win32Api.WriteProcessMemory(jiro.Handle, ComboP1Ptr, wUnityComboBytes, COMBO_P1_SIZE, out ComboP1Byte);
+                    Win32Api.WriteProcessMemory(jiro.Handle, ComboP2Ptr, wUnityComboBytes, COMBO_P2_SIZE, out ComboP2Byte);
+
+                }
+            }
+
             if (IsPlayingArray[0] != 3) {
                 IsResult = false;
             } else if (IsPlayingArray[0] == 3) {
                 // 段位中でない場合
                 if (IsResult == false && NotesP1 != 1 && NotesP2 != 1 && ScoreP1 != 0 && ScoreP2 != 0 && IsTJCArray[0] == 0) {
                     IsResult = true;
-                    string TJAFolder = now_tja.TJAPath.Directory.Name;
+
+                    FileInfo JiroInfo = new FileInfo(JiroEXEPath);
+                    DirectoryInfo JiroDirInfo = JiroInfo.Directory;
+
+                    // C:\Taikojiro\以前をなくしてtaikojiro.exeの親フォルダから見たtjaの相対パス内に保存する
+                    string TJAFolder = now_tja.TJAPath.Directory.FullName.Replace(JiroDirInfo.FullName + "\\", "");
                     string ResultFileName = now_tja.TJAPath.Name;
+
                     ResultFileName = Path.ChangeExtension(ResultFileName, ".xml");
 
                     ResultType resultType = ResultType.NOTCLEAR;
@@ -643,10 +822,15 @@ namespace JiroJudgeViewer {
                 //LbGaugeStatusP2.Text = $"ゲージ{NormaGaugeValueP2}%";
                 switch (NormaGaugeStatusP1Array[0]) {
                     case 0:
+                        LbGaugeStatusP1.ForeColor = Color.Black;
+                        LbGaugeStatusP1.Text = $"ゲージ{NormaGaugeShowP1:N2}%";
+                        break;
                     case 1:
+                        LbGaugeStatusP1.ForeColor = Color.FromArgb(0x2DB9FF);
                         LbGaugeStatusP1.Text = $"ゲージ{NormaGaugeShowP1:N2}%";
                         break;
                     case 2:
+                        LbGaugeStatusP1.ForeColor = Color.Red;
                         LbGaugeStatusP1.Text = "入魂";
                         break;
                     default:
@@ -655,10 +839,15 @@ namespace JiroJudgeViewer {
                 }
                 switch (NormaGaugeStatusP2Array[0]) {
                     case 0:
+                        LbGaugeStatusP2.ForeColor = Color.Black;
+                        LbGaugeStatusP2.Text = $"ゲージ{NormaGaugeShowP2:N2}%";
+                        break;
                     case 1:
+                        LbGaugeStatusP2.ForeColor = Color.FromArgb(0x2DB9FF);
                         LbGaugeStatusP2.Text = $"ゲージ{NormaGaugeShowP2:N2}%";
                         break;
                     case 2:
+                        LbGaugeStatusP2.ForeColor = Color.Red;
                         LbGaugeStatusP2.Text = "入魂";
                         break;
                     default:
@@ -758,6 +947,51 @@ namespace JiroJudgeViewer {
             return num;
         }
 
+        /// <summary>
+        /// 空のリザルトファイルを一通り作成します
+        /// </summary>
+        private void CreateEmptyResult() {
+            try {
+                // 一旦参照している次郎の存在する親フォルダのフルパス取得
+                FileInfo JiroInfo = new FileInfo(JiroEXEPath);
+                DirectoryInfo JiroDirInfo = JiroInfo.Directory;
+
+                //次郎フォルダ内のtjaを全取得後、それらすべてに対してリザルトファイルを作成
+                var TJAs = TJA.GetTJAs(JiroDirInfo);
+
+                TJAs.ForEach(tja => {
+ 
+                    // C:\Taikojiro\以前をなくしてtaikojiro.exeの親フォルダから見たtjaの相対パス内に保存する
+                    string TJAFolder = tja.TJAPath.Directory.FullName.Replace(JiroDirInfo.FullName + "\\", "");
+                    string ResultFileName = tja.TJAPath.Name;
+
+                    ResultFileName = Path.ChangeExtension(ResultFileName, ".xml");
+                    Result result = new Result(tja.TITLE,
+                                               tja.LEVEL,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               9999,
+                                               ResultType.NOPLAY);
+                    Result.Write(result, Path.Combine(RESULT_FOLDER, TJAFolder), ResultFileName);
+
+                });
+
+                MessageBox.Show("空のリザルトファイルを生成しました。");
+            }
+            catch {
+                MessageBox.Show("空のリザルトファイル生成に失敗しました。");
+
+            }
+        }
+
         private void timer1_Tick(object sender, EventArgs e) {
             ReadJiroMemory();
         }
@@ -852,6 +1086,8 @@ namespace JiroJudgeViewer {
                     break;
                 case 28:
                     MessageBox.Show("スタッフクレジット7割\r\nZ00");
+                    break;
+                case 29:
                     break;
                 case 30:
                     MessageBox.Show("1回何も起きないタイミング発　生");
@@ -1007,6 +1243,14 @@ namespace JiroJudgeViewer {
                 return line;
             }
             return line.Substring(line.IndexOf(selectstring) + selectstring.Length);
+        }
+
+        private void BtResultViewerOpen_Click(object sender, EventArgs e) {
+            resultViewer.ShowDialog();
+        }
+
+        private void BtEmptyResultCreate_Click(object sender, EventArgs e) {
+            CreateEmptyResult();
         }
     }
 }

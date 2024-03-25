@@ -258,7 +258,7 @@ namespace JiroJudgeViewer {
                 if (SUBTITLE == null) SUBTITLE = "";
             }
             catch (Exception ex) {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show(TjaFileInfo.FullName);
             }
 
         }

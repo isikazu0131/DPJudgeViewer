@@ -9,22 +9,22 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace JiroJudgeViewer {
-    public partial class JiroDead : Form {
-        public JiroDead() {
+    public partial class AutoZuruForm : Form {
+        public AutoZuruForm() {
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e) {
+        private void BtOK_Click(object sender, EventArgs e) {
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
 
-        private void JiroDead_Shown(object sender, EventArgs e) {
-            System.Media.SystemSounds.Hand.Play();
+        private void AutoZuruForm_Load(object sender, EventArgs e) {
+
         }
 
-        private void JiroDead_FormClosed(object sender, FormClosedEventArgs e) {
-            this.DialogResult = DialogResult.OK;
+        private void AutoZuruForm_Shown(object sender, EventArgs e) {
+            System.Media.SystemSounds.Hand.Play();
         }
     }
 }

@@ -116,7 +116,7 @@ namespace JiroJudgeViewer {
             ResultType = resultType;
         }
 
-        static private Result Read(string Path) {
+        static public Result Read(string Path) {
             var result = new Result();
             if (!File.Exists(Path)) return null;
 
@@ -145,7 +145,7 @@ namespace JiroJudgeViewer {
 
             if (File.Exists(ResultPath)) {
                 OldResult = Read(ResultPath);
-                if(OldResult.Score > result.Score) IsNewRecord = false;
+                if(OldResult.Score >= result.Score) IsNewRecord = false;
                 if(OldResult.ResultType >= result.ResultType) IsStatusUpdate = false;
             }
 
@@ -191,6 +191,7 @@ namespace JiroJudgeViewer {
     }
 
     public enum ResultType {
+        NOPLAY,     // 未プレイ
         NOTCLEAR,   // 未クリア
         CLEAR,      // クリア
         GAUGEMAX,   // 魂ゲージMAX
